@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brandname</title>
+    <link href="https://wd.supracrm.com/clientarea/css/app.css?v=1" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
+        integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+</head>
+
+<body>
+    <div id="sign-up-modal" style="display: none;">
+        <script src="https://wd.supracrm.com/sign-up-form?token=QrIBcj7lYWqu0y8Io1zfgEFSRULA0GUNINBOXuPRg7ZHAG"
+            crossorigin="anonymous"></script>
+    </div>
+
+    <script>
+        function getUserAccounts(email) {
+            jQuery.post(`https://supracrm.web-trader.online/accounts.php`, { email }, (data) => {
+                console.log('/accounts.php', data)
+                data = JSON.parse(data);
+                accounts = ('error' in data) ? {} : data
+                createAccountsList(data)
+            })
+        }
+
+        var clientAreaSettings = {
+            loginLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Coca-Cola_logo.svg/2560px-Coca-Cola_logo.svg.png'
+        };
+
+        var clientAreaEvents = {
+            loginSuccess: loginSuccessCallback,
+            logout: logoutCallback,
+            clickJoinUs: clickJoinUsCallback
+        };
+
+        function loginSuccessCallback(event) {
+            window.loginSuccess = true;
+            console.log('event', event)
+            getUserAccounts(event.user.email);
+            document.getElementById('JoinUsButton').style.display = 'none';
+            jQuery.fancybox.close({
+                src: '#sign-up-modal',
+                type: 'inline',
+                opts: {}
+            });
+        }
+        function logoutCallback(event) {
+            window.loginSuccess = false;
+            if (document.getElementById('account-list-select')) { document.getElementById('account-list-select').remove() };
+            console.log('logoutCallback');
+            document.getElementById('login-webtrader-area').style.display = 'block';
+            document.getElementById('JoinUsButton').style.display = 'block';
+            accounts = [{
+                login: '50538777',
+                password: 'Aa123456',
+                account_type: 'live'
+            }];
+            selectAccount('50538777');
+        }
+        function clickJoinUsCallback() {
+            $.fancybox.open({
+                src: '#sign-up-modal',
+                type: 'inline',
+                opts: {}
+            });
+        }
+        function selectAccount(account) {
+            const wrap = document.querySelector('#wrap-iframe');
+            //console.log('account', account)
+            //const iframe = document.querySelector('iframe')
+            const userCreds = accounts.filter(elem => elem.login == account)[0]
+            let env = '&environment=real';
+            console.log('userCreds.account_type', userCreds)
+            if (userCreds.account_type == "demo_mt4") {
+                env = '&environment=demo'
+            }
+            let iframe = `<iframe style="width: 100vw; height: 100vh;" src="https://supracrmwebtrader.web-trader.online/#/?login=${userCreds.login}&password=${userCreds.password}${env}" />`
+
+            console.log(userCreds)
+            //iframe.src = `https://web-trader.online/#/?login=${userCreds.login}&password=${userCreds.password}&enviroment=demo`;
+            wrap.innerHTML = iframe;
+        }
+        function createAccountsList(accounts) {
+            console.log('createAccountsList(accounts)', accounts)
+            const accountListElement = document.querySelector('#account-list');
+            const selectElement = document.createElement('select');
+            selectElement.id = 'account-list-select';
+
+            accounts.forEach(element => {
+                const optionElement = document.createElement('option');
+                optionElement.appendChild(document.createTextNode(element.login.toString()))
+                selectElement.appendChild(optionElement)
+            });
+            accountListElement.append(selectElement);
+
+            selectElement.onchange = function (event) {
+                selectAccount(event.target.value);
+            }
+            selectAccount(selectElement.value);
+        }
+    </script>
+    <div id="client-area-app">
+        <client-area ref="childref"></client-area>
+        <login></login>
+        <code></code>
+
+
+    </div>
+    <!-- <button id="JoinUsButton" onclick="clickJoinUsCallback();">Open account</button> -->
+
+
+    <script src="https://wd.supracrm.com/clientarea/scripts/app.js"></script>
+    <script>
+        $(document).ready(() => {
+            $('.login__action-link')[0].click();
+        })
+        $("#sign-up-modal .fancybox-button.fancybox-close-small").click(() => {
+            // alert();
+            setTimeout(() => {
+                $('.login__action-link')[0].click();
+            }, 1000);
+        });
+    </script>
+</body>
+
+</html>
